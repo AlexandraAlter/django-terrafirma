@@ -7,6 +7,10 @@ class Stock(models.Model):
     pass
 
 
+class StockAddition(models.Model):
+    pass
+
+
 class StockUsage(models.Model):
     plant = models.ForeignKey(c_models.Plant, on_delete=models.PROTECT)
     amount = models.PositiveIntegerField(blank=True)
@@ -23,6 +27,9 @@ class StockExpiry(StockUsage):
 
     def __str__(self):
         return "expiry".format()
+
+    class Meta:
+        verbose_name_plural = 'stock expiries'
 
 
 class StockRemoval(StockUsage):
