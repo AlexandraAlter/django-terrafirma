@@ -19,5 +19,10 @@ from django.conf import settings
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('terrafirma.urls')),
+    path('', include('terrafirma.core.urls')),
+    path('', include('terrafirma.stock.urls')),
+    path('', include('terrafirma.store.urls')),
+    path('', include('terrafirma.map.urls')),
+    path('', include('terrafirma.planner.urls')),
+    path('', include('terrafirma.calendar.urls')),
 ]

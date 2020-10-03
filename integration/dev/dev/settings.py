@@ -39,7 +39,6 @@ ALLOWED_HOSTS = []
 # Application definition
 
 INSTALLED_APPS = [
-    'terrafirma',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -48,6 +47,12 @@ INSTALLED_APPS = [
     'django.contrib.postgres',
     'django.contrib.staticfiles',
     'django_extensions',
+    'terrafirma.core',
+    'terrafirma.stock',
+    'terrafirma.store',
+    'terrafirma.map',
+    'terrafirma.planner',
+    'terrafirma.calendar',
 ]
 
 MIDDLEWARE = [

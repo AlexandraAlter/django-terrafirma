@@ -1,12 +1,12 @@
 from django.db import models
 from django.db.models import functions
 
-SEEDS = 's'
-ROWS = 'r'
+UNIT_SEEDS = 's'
+UNIT_ROWS = 'r'
 UNIT_G = 'g'
 UNIT_COUNT = 'c'
-PLANTING_UNITS = [(UNIT_SEEDS, 'seeds')(UNIT_ROWS, 'rows')]
-HARVEST_UNITS = [(UNIT_G, 'grams')(UNIT_COUNT, 'count')]
+PLANTING_UNITS = [(UNIT_SEEDS, 'seeds'), (UNIT_ROWS, 'rows')]
+HARVEST_UNITS = [(UNIT_G, 'grams'), (UNIT_COUNT, 'count')]
 
 
 class Note(models.Model):
@@ -18,17 +18,6 @@ class Note(models.Model):
 
     def __str__(self):
         return "char[{}]".format(len(self.text))
-
-
-class PlantType(models.Model):
-    common_name = models.CharField(max_length=64)
-    variety = models.CharField(max_length=64)
-
-    def __repr__(self):
-        return "PlantType({}, {})".format(self.common_name, self.variety)
-
-    def __str__(self):
-        return "{} {}".format(self.common_name, self.variety)
 
 
 class Environment(models.Model):
@@ -63,32 +52,15 @@ class Bed(models.Model):
             return "inactive {} {}".format(self.environment.name, self.name)
 
 
-class Malady(models.Model):
-    name = models.CharField(max_length=64)
-    type = models.CharField(max_length=64, blank=True)
+class PlantType(models.Model):
+    common_name = models.CharField(max_length=64)
+    variety = models.CharField(max_length=64)
 
     def __repr__(self):
-        return "Malady({}, {})".format(self.name, self.type)
+        return "PlantType({}, {})".format(self.common_name, self.variety)
 
     def __str__(self):
-        return "malady {} {}".format(self.type.name, self.name)
-
-    class Meta:
-        verbose_name_plural = 'maladies'
-
-
-class MaladyInstance(models.Model):
-    malady = models.ForeignKey(Malady, on_delete=models.PROTECT)
-    date = models.DateField(auto_now=True)
-    bed = models.ForeignKey(Bed, on_delete=models.PROTECT)
-    sowing = models.ForeignKey(Plant, on_delete=models.PROTECT)
-    details = models.ForeignKey(Note, on_delete=models.PROTECT, blank=True)
-
-    def __repr__(self):
-        return "MaladyInstance({}, {}, {})".format(self.malady, self.date, self.bed)
-
-    def __str__(self):
-        return "malady instance {} on {} in {}".format(self.malady, self.date, self.bed)
+        return "{} {}".format(self.common_name, self.variety)
 
 
 class Plant(models.Model):
@@ -132,8 +104,6 @@ class Harvest(models.Model):
         return "harvest".format()
 
 
-
-
 class Observation(models.Model):
     plant_type = models.ForeignKey(PlantType, on_delete=models.PROTECT, blank=True, null=True)
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT, blank=True, null=True)
@@ -143,6 +113,12 @@ class Observation(models.Model):
     date = models.DateField(auto_now=True)
 
     text = models.ForeignKey(Note, on_delete=models.PROTECT, blank=True)
+
+    def __repr__(self):
+        return "Observation()".format()
+
+    def __str__(self):
+        return "observation".format()
 
 
 class TreatmentType(models.Model):
@@ -168,16 +144,29 @@ class Treatment(Observation):
                                                             self.bed, len(self.details))
 
 
-class Observation(models.Model):
-    plant_type = models.ForeignKey(PlantType, on_delete=models.PROTECT, blank=True, null=True)
-    environment = models.ForeignKey(Environment, on_delete=models.PROTECT, blank=True, null=True)
-    bed = models.ForeignKey(Bed, on_delete=models.PROTECT, blank=True, null=True)
-    plant = models.ForeignKey(Plant, on_delete=models.PROTECT, blank=True, null=True)
-    date = models.DateField(auto_now=True)
-    text = models.ForeignKey(Note, on_delete=models.PROTECT, blank=True)
+class MaladyType(models.Model):
+    name = models.CharField(max_length=64)
+    type = models.CharField(max_length=64, blank=True)
 
     def __repr__(self):
-        return "Observation()".format()
+        return "MaladyType({}, {})".format(self.name, self.type)
 
     def __str__(self):
-        return "observation".format()
+        return "malady type {} {}".format(self.type.name, self.name)
+
+
+class Malady(models.Model):
+    malady = models.ForeignKey(MaladyType, on_delete=models.PROTECT)
+    date = models.DateField(auto_now=True)
+    bed = models.ForeignKey(Bed, on_delete=models.PROTECT)
+    sowing = models.ForeignKey(Plant, on_delete=models.PROTECT)
+    details = models.ForeignKey(Note, on_delete=models.PROTECT, blank=True)
+
+    def __repr__(self):
+        return "Malady({}, {}, {})".format(self.malady, self.date, self.bed)
+
+    def __str__(self):
+        return "malady {} on {} in {}".format(self.malady, self.date, self.bed)
+
+    class Meta:
+        verbose_name_plural = 'maladies'
