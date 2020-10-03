@@ -1,0 +1,6 @@
+dev/secrets/*
+!dev/secrets/.keep
+!dev/secrets/__init__.py
+
+staticfiles/*
+!staticfiles/.keep
