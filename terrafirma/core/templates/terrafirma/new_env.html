@@ -1,0 +1,12 @@
+{% extends "terrafirma/base.html" %}
+
+{% block body %}
+<h1>{% block title %}Terrafirma - New Environment{% endblock %}</h1>
+
+<form action={% url 'new-env' %} method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" value="Submit"/>
+</form>
+
+{% endblock %}

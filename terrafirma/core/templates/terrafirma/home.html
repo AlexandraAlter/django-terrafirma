@@ -1,0 +1,16 @@
+{% extends "terrafirma/base.html" %}
+
+{% block body %}
+<h1>{% block title %}Terrafirma - Home{% endblock %}</h1>
+
+<h2>Environments</h2>
+
+<ul>
+{% for env in env_list %}
+<li><a href={% url 'env' env_name=env.name %}>{{ env.name }}</li>
+{% endfor %}
+</ul>
+
+<a href={% url 'new-env' %}>New Environment</a>
+
+{% endblock %}
