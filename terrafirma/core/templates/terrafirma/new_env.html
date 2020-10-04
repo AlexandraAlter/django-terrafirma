@@ -1,7 +1,10 @@
 {% extends "terrafirma/base.html" %}
+{% load extension_tags %}
 
-{% block body %}
-<h1>{% block title %}Terrafirma - New Environment{% endblock %}</h1>
+{% block title %} {{ block.super }} - New Environment {% endblock %}
+{% block header %} {{ block.super }}<span> - New Environment</span> {% endblock %}
+
+{% block content %}
 
 <form action={% url 'new-env' %} method="post">
     {% csrf_token %}

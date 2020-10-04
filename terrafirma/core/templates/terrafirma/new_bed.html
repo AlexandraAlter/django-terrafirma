@@ -1,0 +1,15 @@
+{% extends "terrafirma/env.html" %}
+{% load extension_tags %}
+
+{% block title %} {{ block.super }} - New Bed {% endblock %}
+{% block header %} {{ block.super }}<span> - New Bed</span> {% endblock %}
+
+{% block content %}
+
+<form action={% url 'new-bed' env_name=env.name %} method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" value="Submit"/>
+</form>
+
+{% endblock %}

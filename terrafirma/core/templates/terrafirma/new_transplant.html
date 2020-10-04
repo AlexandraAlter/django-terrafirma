@@ -1,0 +1,17 @@
+{% extends "terrafirma/plant.html" %}
+{% load extension_tags %}
+
+{% block title %} {{ block.super }} - New Transplant {% endblock %}
+{% block header %} {{ block.super }}<span> - New Transplant</span> {% endblock %}
+
+{% block content %}
+
+<h2>New Transplant</h2>
+
+<form action={% url 'new-transplant' plant_id=plant.id %} method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" value="Submit"/>
+</form>
+
+{% endblock %}

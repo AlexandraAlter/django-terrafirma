@@ -1,0 +1,20 @@
+{% extends "terrafirma/base.html" %}
+{% load extension_tags %}
+
+{% block title %} {{ block.super }} - Plant Types {% endblock %}
+{% block header %} {{ block.super }}<span> - </span>{% maybe_link 'plant-types' 'Plant Types' %} {% endblock %}
+
+{% block content %}
+<h2>Plants</h2>
+
+<ul>
+    {% for plant_type in plant_types %}
+    <li><a href={% url 'plant-type' plant_type_id=plant_type.id %}>
+        <span>{{ plant_type.common_name }} {{ plant_type.variety }}</span>
+    </a></li>
+    {% empty %}
+    <li>No recorded observations</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

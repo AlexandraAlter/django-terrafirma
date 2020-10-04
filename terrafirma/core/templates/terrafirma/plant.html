@@ -1,0 +1,31 @@
+{% extends "terrafirma/plants.html" %}
+{% load extension_tags %}
+
+{% block title %} {{ block.super }} - {{ plant.id }} {% endblock %}
+{% block header %} {{ block.super }}<span> - </span>{{ plant.id }} {% endblock %}
+
+{% block content %}
+
+<h2>Transplantings (<a href={% url 'new-transplant' plant_id=plant.id %}>New</a>)</h2>
+
+<ul>
+    {% for tr in plant.transplants %}
+    <li><a href={% url 'plant' plant_id=planting.id %}>
+        <span> </span>
+    </a></li>
+    {% empty %}
+    <li>No recorded transplantings</li>
+    {% endfor %}
+</ul>
+
+<h2>Observations</h2>
+
+<ul>
+    {% for observation in observations %}
+    <li><a href={% url 'plant' plant_id=planting.id %}>Plant!</a></li>
+    {% empty %}
+    <li>No recorded observations</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

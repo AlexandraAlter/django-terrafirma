@@ -2,7 +2,25 @@ from django import forms
 
 from . import models
 
+
 class EnvForm(forms.ModelForm):
     class Meta:
         model = models.Environment
-        fields = ['name', 'short_name']
+        exclude = ['active']
+
+
+class PlantForm(forms.ModelForm):
+    class Meta:
+        model = models.Plant
+        exclude = ['active']
+
+
+class TransplantForm(forms.ModelForm):
+    class Meta:
+        model = models.Transplanting
+        fields = ['bed']
+
+class BedForm(forms.ModelForm):
+    class Meta:
+        model = models.Bed
+        exclude = ['environment', 'active']

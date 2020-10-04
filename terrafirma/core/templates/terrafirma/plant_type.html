@@ -1,0 +1,31 @@
+{% extends "terrafirma/plant_types.html" %}
+{% load extension_tags %}
+
+{% block title %} {{ block.super }} - {{ plant_type.full_name }} {% endblock %}
+{% block header %} {{ block.super }}<span> - </span>{{ plant_type.full_name }} {% endblock %}
+
+{% block content %}
+
+<h2>Plantings (<a href={% url 'new-plant' %}>New</a>)</h2>
+
+<ul>
+    {% for planting in plantings %}
+    <li><a href={% url 'plant' plant_id=planting.id %}>
+        <span>Plant!</span>
+    </a></li>
+    {% empty %}
+    <li>No recorded plantings</li>
+    {% endfor %}
+</ul>
+
+<h2>Observations</h2>
+
+<ul>
+    {% for observation in observations %}
+    <li><a href={% url 'plant' plant_id=planting.id %}>Plant!</a></li>
+    {% empty %}
+    <li>No recorded observations</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

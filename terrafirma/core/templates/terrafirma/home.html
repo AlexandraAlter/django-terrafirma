@@ -1,16 +1,35 @@
 {% extends "terrafirma/base.html" %}
+{% load extension_tags %}
 
-{% block body %}
-<h1>{% block title %}Terrafirma - Home{% endblock %}</h1>
-
-<h2>Environments</h2>
+{% block content %}
+<h2>Environments (<a href={% url 'new-env' %}>New</a>)</h2>
 
 <ul>
 {% for env in env_list %}
-<li><a href={% url 'env' env_name=env.name %}>{{ env.name }}</li>
+    <li><a href={% url 'env' env_name=env.name %}>{{ env.name }}</a></li>
 {% endfor %}
 </ul>
 
-<a href={% url 'new-env' %}>New Environment</a>
+<h2><a href={% url 'plant-types' %}>Plants Types</a></h2>
+
+{% if_map_installed %}
+<h2><a href={% url 'map' %}>Map</a></h2>
+{% endif %}
+
+{% if_stock_installed %}
+<h2><a href={% url 'stock' %}>Stock</a></h2>
+{% endif %}
+
+{% if_store_installed %}
+<h2><a href={% url 'store' %}>Store</a></h2>
+{% endif %}
+
+{% if_calendar_installed %}
+<h2><a href={% url 'calendar' %}>Calendar</a></h2>
+{% endif %}
+
+{% if_planner_installed %}
+<h2><a href={% url 'planner' %}>Planner</a></h2>
+{% endif %}
 
 {% endblock %}

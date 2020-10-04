@@ -1,3 +1,6 @@
 from django.shortcuts import render
+from django import views
 
-# Create your views here.
+
+class StockView(views.View):
+    pass

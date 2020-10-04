@@ -21,28 +21,28 @@ class Note(models.Model):
 
 
 class Environment(models.Model):
-    name = models.CharField(max_length=64)
-    short_name = models.CharField(max_length=16)
+    name = models.CharField(max_length=16)
+    long_name = models.CharField(max_length=64)
     active = models.BooleanField(default=True)
 
     def __repr__(self):
-        return "Environment({}, {}, {})".format(self.name, self.short_name, self.active)
+        return "Environment({}, {}, {})".format(self.name, self.long_name, self.active)
 
     def __str__(self):
         if self.active:
-            return "{} ({})".format(self.name, self.short_name)
+            return "{} ({})".format(self.name, self.long_name)
         else:
-            return "inactive {} ({})".format(self.name, self.short_name)
+            return "inactive {} ({})".format(self.name, self.long_name)
 
 
 class Bed(models.Model):
-    name = models.CharField(max_length=64)
-    short_name = models.CharField(max_length=16)
-    environment = models.ForeignKey(Environment, on_delete=models.PROTECT)
+    name = models.CharField(max_length=16)
+    long_name = models.CharField(max_length=64)
+    environment = models.ForeignKey(Environment, on_delete=models.PROTECT, related_name='beds')
     active = models.BooleanField(default=True)
 
     def __repr__(self):
-        return "Bed({}, {}, {}, active={})".format(self.name, self.short_name, self.environment,
+        return "Bed({}, {}, {}, active={})".format(self.name, self.long_name, self.environment,
                                                    self.active)
 
     def __str__(self):
@@ -56,6 +56,11 @@ class PlantType(models.Model):
     common_name = models.CharField(max_length=64)
     variety = models.CharField(max_length=64)
 
+    @property
+    def full_name(self):
+        return "{} {}".format(self.common_name, self.variety)
+
+
     def __repr__(self):
         return "PlantType({}, {})".format(self.common_name, self.variety)
 
@@ -68,6 +73,10 @@ class Plant(models.Model):
     amount = models.PositiveIntegerField()
     unit = models.CharField(max_length=1, choices=PLANTING_UNITS)
     active = models.BooleanField(default=True)
+
+    @property
+    def transplants(self):
+        return []
 
     def __repr__(self):
         return "Plant({}, {}, {}, active={})".format(self.type, self.amount, self.unit, self.active)

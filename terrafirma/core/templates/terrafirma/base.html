@@ -1,3 +1,4 @@
+{% load extension_tags %}
 <!DOCTYPE html>
 <html lang="en">
     <head>
@@ -6,6 +7,10 @@
     </head>
 
     <body>
-        {% block body %}{% endblock %}
+        <h1>
+            {% spaceless %}{% block header %}{% maybe_link 'home' 'Terrafirma' %}{% endblock %}{% endspaceless %}
+        </h1>
+
+        {% spaceless %}{% block content %}{% endblock %}{% endspaceless %}
     </body>
 </html>
