@@ -57,11 +57,11 @@ def if_store_installed(parser, token):
 
 
 @register.inclusion_tag('terrafirma/header_link.html', takes_context=True)
-def maybe_link(context, url, text, **kwargs):
+def maybe_link(context, text, url, *args, **kwargs):
     from django.urls import reverse
 
     request = context['request']
-    link = reverse(url, kwargs=kwargs)
+    link = reverse(url, args=args, kwargs=kwargs)
     return {
         'link': link if not request.path == link else None,
         'text': text,

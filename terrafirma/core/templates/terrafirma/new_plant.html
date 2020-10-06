@@ -5,9 +5,10 @@
 {% block header %} {{ block.super }}<span> - New Plant</span> {% endblock %}
 
 {% block content %}
+
 <h2>New Plant</h2>
 
-<form action={% url 'new-plant' %} method="post">
+<form method="post">
     {% csrf_token %}
     {{ form.as_ul }}
     <input type="submit" value="Submit"/>

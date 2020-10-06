@@ -19,8 +19,3 @@ class TransplantForm(forms.ModelForm):
     class Meta:
         model = models.Transplanting
         fields = ['bed']
-
-class BedForm(forms.ModelForm):
-    class Meta:
-        model = models.Bed
-        exclude = ['environment', 'active']

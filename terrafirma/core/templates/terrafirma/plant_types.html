@@ -2,18 +2,19 @@
 {% load extension_tags %}
 
 {% block title %} {{ block.super }} - Plant Types {% endblock %}
-{% block header %} {{ block.super }}<span> - </span>{% maybe_link 'plant-types' 'Plant Types' %} {% endblock %}
+{% block header %} {{ block.super }}<span> - </span>{% maybe_link 'Plant Types' 'plant-types' %} {% endblock %}
 
 {% block content %}
-<h2>Plants</h2>
+
+<h2>Plants Types (<a href={% url 'new-plant-type' %}>New</a>)</h2>
 
 <ul>
     {% for plant_type in plant_types %}
-    <li><a href={% url 'plant-type' plant_type_id=plant_type.id %}>
+    <li><a href={% url 'plant-type' plant_type.id %}>
         <span>{{ plant_type.common_name }} {{ plant_type.variety }}</span>
     </a></li>
     {% empty %}
-    <li>No recorded observations</li>
+    <li>No plant types</li>
     {% endfor %}
 </ul>
 

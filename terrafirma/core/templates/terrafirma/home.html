@@ -6,7 +6,7 @@
 
 <ul>
 {% for env in env_list %}
-    <li><a href={% url 'env' env_name=env.name %}>{{ env.name }}</a></li>
+    <li><a href={% url 'env' env.name %}>{{ env.name }}</a></li>
 {% endfor %}
 </ul>
 

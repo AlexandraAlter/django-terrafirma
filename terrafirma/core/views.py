@@ -12,20 +12,6 @@ class HomeView(views.View):
         return render(request, 'terrafirma/home.html', {'env_list': env_list})
 
 
-class NewEnvironmentView(views.View):
-    def get(self, request, *args, **kwargs):
-        form = forms.EnvForm()
-        return render(request, 'terrafirma/new_env.html', {'form': form})
-
-    def post(self, request, *args, **kwargs):
-        form = forms.EnvForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('home')
-        else:
-            return render(request, 'terrafirma/new_env.html', {'form': form})
-
-
 # plant types
 
 
@@ -47,18 +33,14 @@ class PlantTypeView(views.View):
         })
 
 
-class NewPlantTypeView(views.View):
-    def get(self, request, *args, **kwargs):
-        form = forms.PlantTypeForm()
-        return render(request, 'terrafirma/new_plant_type.html', {'form': form})
+class NewPlantTypeView(e_views.CreateView):
+    template_name = 'terrafirma/new_plant_type.html'
+    model = models.PlantType
+    fields = ['common_name', 'variety']
 
-    def post(self, request, *args, **kwargs):
-        form = forms.PlantTypeForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('plants')
-        else:
-            return render(request, 'terrafirma/new_plant_type.html', {'form': form})
+    def form_valid(self, form):
+        form.save()
+        return redirect('plant-types')
 
 
 # plants
@@ -111,6 +93,23 @@ class NewTransplantView(views.View):
             return render(request, 'terrafirma/new_transplant.html', {'plant': plant, 'form': form})
 
 
+class NewTransplantView(e_views.CreateView):
+    template_name = 'terrafirma/new_transplant.html'
+    model = models.Transplanting
+    fields = ['bed']
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(plant=self.plant, **kwargs)
+
+    def form_valid(self, form):
+        form.save()
+        return redirect('plant', plant_id=self.plant.id)
+
+
 # environments
 
 
@@ -118,6 +117,29 @@ class EnvView(views.View):
     def get(self, request, *args, **kwargs):
         env = get_object_or_404(models.Environment, name=kwargs['env_name'])
         return render(request, 'terrafirma/env.html', {'env': env, 'beds': env.beds.all()})
+
+
+class NewEnvironmentView(e_views.CreateView):
+    template_name = 'terrafirma/new_env.html'
+    model = models.Environment
+    fields = ['name', 'long_name']
+    success_url = reverse_lazy('home')
+
+
+# beds
+
+
+class BedListView(views.View):
+    def get(self, request, *args, **kwargs):
+        beds = models.Bed.objects.all()
+        return render(request, 'terrafirma/beds.html', {'beds': beds})
+
+
+class BedView(views.View):
+    def get(self, request, *args, **kwargs):
+        env = get_object_or_404(models.Environment, name=kwargs['env_name'])
+        bed = get_object_or_404(models.Bed, name=kwargs['bed_name'])
+        return render(request, 'terrafirma/bed.html', {'env': env, 'bed': bed})
 
 
 class NewBedView(e_views.CreateView):
@@ -130,9 +152,7 @@ class NewBedView(e_views.CreateView):
         self.env = get_object_or_404(models.Environment, name=kwargs['env_name'])
 
     def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context['env'] = self.env
-        return context
+        return super().get_context_data(env=self.env, **kwargs)
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
@@ -141,30 +161,23 @@ class NewBedView(e_views.CreateView):
         return redirect('env', env_name=self.env.name)
 
 
-class EditBedView(NewBedView):
-    def get(self, request, *args, **kwargs):
-        env = get_object_or_404(models.Environment, name=kwargs['env_name'])
-        form = forms.BedForm()
-        return render(request, 'terrafirma/new_bed.html', {'env': env, 'form': form})
+class EditBedView(e_views.UpdateView):
+    template_name = 'terrafirma/edit_bed.html'
+    model = models.Bed
+    fields = ['name', 'long_name']
+    slug_field = 'name'
+    slug_url_kwarg = 'bed_name'
 
-    def post(self, request, *args, **kwargs):
-        env = get_object_or_404(models.Environment, name=kwargs['env_name'])
-        bed = models.Bed(environment=env)
-        form = forms.BedForm(request.POST, instance=bed)
-        if form.is_valid():
-            form.save()
-            return redirect('env', env_name=env.name)
-        else:
-            return render(request, 'terrafirma/new_bed.html', {'env': env, 'form': form})
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.object = get_object_or_404(models.Bed, name=kwargs['bed_name'])
+        self.env = get_object_or_404(models.Environment, name=kwargs['env_name'])
+        self.bed = self.object
 
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(env=self.env, **kwargs)
 
-class BedListView(views.View):
-    def get(self, request, *args, **kwargs):
-        beds = models.Bed.objects.all()
-        return render(request, 'terrafirma/beds.html', {'beds': beds})
-
-
-class BedView(views.View):
-    def get(self, request, *args, **kwargs):
-        bed = models.Bed.objects.get(name=kwargs.get('bed_name'))
-        return render(request, 'terrafirma/bed.html', {'bed': bed})
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.save()
+        return redirect('bed', env_name=self.env.name, bed_name=self.bed.name)

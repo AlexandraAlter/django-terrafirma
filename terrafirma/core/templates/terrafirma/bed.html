@@ -1,0 +1,22 @@
+{% extends "terrafirma/env.html" %}
+{% load extension_tags %}
+
+{% block title %} {{ block.super }} - {{ bed.name }} {% endblock %}
+{% block header %} {{ block.super }}<span> - </span>{% maybe_link bed.name 'bed' env.name bed.name %} {% endblock %}
+
+{% block content %}
+
+<h2>Bed (<a href={% url 'edit-bed' env.name bed.name %}>Edit</a>)</h2>
+
+<h2>Plants (<a href={% url 'new-plant' %}>New</a>)</h2>
+
+<ul>
+    {% for bed in beds %}
+    <li>
+    </li>
+    {% empty %}
+    <li>No plants</li>
+    {% endfor %}
+</ul>
+
+{% endblock %}

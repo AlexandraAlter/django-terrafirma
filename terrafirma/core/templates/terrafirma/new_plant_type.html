@@ -1,0 +1,17 @@
+{% extends "terrafirma/plant_types.html" %}
+{% load extension_tags %}
+
+{% block title %} {{ block.super }} - New Plant Type {% endblock %}
+{% block header %} {{ block.super }}<span> - New Plant Type</span> {% endblock %}
+
+{% block content %}
+
+<h2>New Plant Type</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" value="Submit"/>
+</form>
+
+{% endblock %}

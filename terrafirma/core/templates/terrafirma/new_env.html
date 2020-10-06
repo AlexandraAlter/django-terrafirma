@@ -6,7 +6,7 @@
 
 {% block content %}
 
-<form action={% url 'new-env' %} method="post">
+<form method="post">
     {% csrf_token %}
     {{ form.as_ul }}
     <input type="submit" value="Submit"/>

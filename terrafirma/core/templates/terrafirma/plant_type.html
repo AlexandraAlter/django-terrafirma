@@ -10,7 +10,7 @@
 
 <ul>
     {% for planting in plantings %}
-    <li><a href={% url 'plant' plant_id=planting.id %}>
+    <li><a href={% url 'plant' planting.id %}>
         <span>Plant!</span>
     </a></li>
     {% empty %}
@@ -22,7 +22,7 @@
 
 <ul>
     {% for observation in observations %}
-    <li><a href={% url 'plant' plant_id=planting.id %}>Plant!</a></li>
+    <li><a href={% url 'plant' planting.id %}>Plant!</a></li>
     {% empty %}
     <li>No recorded observations</li>
     {% endfor %}
