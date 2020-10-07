@@ -2,6 +2,7 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse, reverse_lazy
 from django import views
 from django.views.generic import edit as e_views
+from django.db import transaction
 
 from . import forms, models
 
@@ -46,17 +47,31 @@ class NewPlantTypeView(e_views.CreateView):
 # plants
 
 
+class PlantMixin:
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        # self.env = get_object_or_404(models.Environment, name=kwargs['env_name'])
+        # self.bed = get_object_or_404(models.Bed, name=kwargs['bed_name'])
+        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
+        self.bed = self.plant.cur_bed
+        self.env = self.bed.env
+
+    def url_vars(self):
+        return {'env_name': self.env.name, 'bed_name': self.bed.name, 'plant_id': self.plant.id}
+
+
 class PlantListView(views.View):
     def get(self, request, *args, **kwargs):
         plants = models.Plant.objects.all()
         return render(request, 'terrafirma/plants.html', {'plants': plants})
 
 
-class PlantView(views.View):
+class PlantView(PlantMixin, views.View):
     def get(self, request, *args, **kwargs):
-        plant = models.Plant.objects.get(id=kwargs.get('plant_id'))
         return render(request, 'terrafirma/plant.html', {
-            'plant': plant,
+            'env': self.env,
+            'bed': self.bed,
+            'plant': self.plant,
         })
 
 
@@ -76,38 +91,44 @@ class NewPlantView(views.View):
 
 # transplants
 
+# class NewTransplantView(PlantMixin, views.View):
+#     def get(self, request, *args, **kwargs):
+#         form = forms.TransplantForm(initial={'plant': self.plant})
+#         return render(request, 'terrafirma/new_transplant.html', {
+#             'env': self.env,
+#             'bed': self.bed,
+#             'plant': self.plant,
+#             'form': form,
+#         })
 
-class NewTransplantView(views.View):
-    def get(self, request, *args, **kwargs):
-        plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
-        form = forms.TransplantForm(initial={'plant': plant})
-        return render(request, 'terrafirma/new_transplant.html', {'plant': plant, 'form': form})
-
-    def post(self, request, *args, **kwargs):
-        plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
-        form = forms.TransplantForm(request.POST)
-        if form.is_valid():
-            form.save()
-            return redirect('plants')
-        else:
-            return render(request, 'terrafirma/new_transplant.html', {'plant': plant, 'form': form})
+#     def post(self, request, *args, **kwargs):
+#         plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
+#         form = forms.TransplantForm(request.POST)
+#         if form.is_valid():
+#             form.save()
+#             return redirect('plants')
+#         else:
+#             return render(request, 'terrafirma/new_transplant.html', {'plant': plant, 'form': form})
 
 
-class NewTransplantView(e_views.CreateView):
+class NewTransplantView(PlantMixin, e_views.CreateView):
     template_name = 'terrafirma/new_transplant.html'
     model = models.Transplanting
     fields = ['bed']
 
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
-
     def get_context_data(self, **kwargs):
-        return super().get_context_data(plant=self.plant, **kwargs)
+        return super().get_context_data(env=self.env, bed=self.bed, plant=self.plant, **kwargs)
 
+    @transaction.atomic
     def form_valid(self, form):
-        form.save()
-        return redirect('plant', plant_id=self.plant.id)
+        transplant = form.save(commit=False)
+        transplant.plant = self.plant
+        old_transplant = self.plant.cur_transplant
+        old_transplant.active = False
+        transplant.active = True
+        old_transplant.save()
+        transplant.save()
+        return redirect('plant', **self.url_vars())
 
 
 # environments
@@ -170,9 +191,9 @@ class EditBedView(e_views.UpdateView):
 
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        self.object = get_object_or_404(models.Bed, name=kwargs['bed_name'])
         self.env = get_object_or_404(models.Environment, name=kwargs['env_name'])
-        self.bed = self.object
+        self.bed = get_object_or_404(models.Bed, name=kwargs['bed_name'], environment=self.env)
+        self.object = self.bed
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(env=self.env, **kwargs)
@@ -181,3 +202,60 @@ class EditBedView(e_views.UpdateView):
         self.object = form.save(commit=False)
         self.object.save()
         return redirect('bed', env_name=self.env.name, bed_name=self.bed.name)
+
+
+# observations
+
+
+class NewObsView(e_views.CreateView):
+    http_method_names = ['post']
+    model = models.Observation
+    fields = []
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.env = get_object_or_404(models.Environment, name=kwargs['env_name'])
+        self.bed = get_object_or_404(models.Bed, name=kwargs['bed_name'], environment=self.env)
+        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
+
+    def get_context_data(self, **kwargs):
+        return super().get_context_data(env=self.env, **kwargs)
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.save()
+        return redirect('plant', env_name=self.env.name, bed_name=self.bed.name, plant_id=plant.id)
+
+
+class NewTrtView(e_views.CreateView):
+    http_method_names = ['post']
+    model = models.Treatment
+    fields = []
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.env = get_object_or_404(models.Environment, name=kwargs['env_name'])
+        self.bed = get_object_or_404(models.Bed, name=kwargs['bed_name'], environment=self.env)
+        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.save()
+        return redirect('plant', env_name=self.env.name, bed_name=self.bed.name, plant_id=plant.id)
+
+
+class NewMalView(e_views.CreateView):
+    http_method_names = ['post']
+    model = models.Malady
+    fields = []
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.env = get_object_or_404(models.Environment, name=kwargs['env_name'])
+        self.bed = get_object_or_404(models.Bed, name=kwargs['bed_name'], environment=self.env)
+        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.save()
+        return redirect('plant', env_name=self.env.name, bed_name=self.bed.name, plant_id=plant.id)

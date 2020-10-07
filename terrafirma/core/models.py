@@ -1,5 +1,6 @@
 from django.db import models
 from django.db.models import functions
+from django.urls import reverse
 
 UNIT_SEEDS = 's'
 UNIT_ROWS = 'r'
@@ -34,12 +35,23 @@ class Environment(models.Model):
         else:
             return "inactive {} ({})".format(self.name, self.long_name)
 
+    def get_absolute_url(self):
+        return reverse('env', kwargs={'env_name': self.name})
+
 
 class Bed(models.Model):
     name = models.CharField(max_length=16)
     long_name = models.CharField(max_length=64)
     environment = models.ForeignKey(Environment, on_delete=models.PROTECT, related_name='beds')
     active = models.BooleanField(default=True)
+
+    @property
+    def env(self):
+        return self.environment
+
+    @property
+    def cur_plants(self):
+        return Plant.objects.filter(transplants__active=True).all()
 
     def __repr__(self):
         return "Bed({}, {}, {}, active={})".format(self.name, self.long_name, self.environment,
@@ -51,6 +63,9 @@ class Bed(models.Model):
         else:
             return "inactive {} {}".format(self.environment.name, self.name)
 
+    def get_absolute_url(self):
+        return reverse('bed', kwargs={'env_name': self.environment.name, 'bed_name': self.name})
+
 
 class PlantType(models.Model):
     common_name = models.CharField(max_length=64)
@@ -60,12 +75,14 @@ class PlantType(models.Model):
     def full_name(self):
         return "{} {}".format(self.common_name, self.variety)
 
-
     def __repr__(self):
         return "PlantType({}, {})".format(self.common_name, self.variety)
 
     def __str__(self):
         return "{} {}".format(self.common_name, self.variety)
+
+    def get_absolute_url(self):
+        return reverse('plant-type', kwargs={'plant_type_id': self.id})
 
 
 class Plant(models.Model):
@@ -73,10 +90,15 @@ class Plant(models.Model):
     amount = models.PositiveIntegerField()
     unit = models.CharField(max_length=1, choices=PLANTING_UNITS)
     active = models.BooleanField(default=True)
+    beds = models.ManyToManyField(Bed, through='Transplanting')
 
     @property
-    def transplants(self):
-        return []
+    def cur_transplant(self):
+        return self.transplants.filter(active=True).get()
+
+    @property
+    def cur_bed(self):
+        return Bed.objects.filter(transplants__active=True, transplants__plant=self).get()
 
     def __repr__(self):
         return "Plant({}, {}, {}, active={})".format(self.type, self.amount, self.unit, self.active)
@@ -87,11 +109,21 @@ class Plant(models.Model):
         else:
             return "dead plant {}, {}{}".format(self.type, self.amount, self.unit)
 
+    def get_absolute_url(self):
+        bed = self.cur_bed
+        return reverse('plant',
+                       kwargs={
+                           'env_name': bed.env,
+                           'bed_name': bed.name,
+                           'plant_id': self.id
+                       })
+
 
 class Transplanting(models.Model):
-    plant = models.ForeignKey(Plant, on_delete=models.PROTECT)
+    plant = models.ForeignKey(Plant, on_delete=models.PROTECT, related_name='transplants')
     date = models.DateField(auto_now=True)
-    bed = models.ForeignKey(Bed, on_delete=models.PROTECT)
+    bed = models.ForeignKey(Bed, on_delete=models.PROTECT, related_name='transplants')
+    active = models.BooleanField()
 
     def __repr__(self):
         return "Transplanting({}, {}, {})".format(self.plant, self.date, self.bed)

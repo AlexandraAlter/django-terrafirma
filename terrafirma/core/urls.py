@@ -19,18 +19,21 @@ urlpatterns = [
             path('bed/<str:bed_name>/', include([
                 path('', views.BedView.as_view(), name='bed'),
                 path('edit/', views.EditBedView.as_view(), name='edit-bed'),
+
+                # plants
+                path('plant/<int:plant_id>/', include([
+                    path('', views.PlantView.as_view(), name='plant'),
+                    path('new-obs/', views.NewObsView.as_view(), name='plant/new-obs'),
+                    path('new-trt/', views.NewTrtView.as_view(), name='plant/new-trt'),
+                    path('new-mal/', views.NewMalView.as_view(), name='plant/new-mal'),
+                    path('transplant/', views.NewTransplantView.as_view(), name='new-trans'),
+                ])),
+                path('plants/new/', views.NewPlantView.as_view(), name='new-plant'),
             ])),
         ])),
 
-    # plants
+    # all plants
     path('plants/', views.PlantListView.as_view(), name='plants'),
-    path('plants/new/', views.NewPlantView.as_view(), name='new-plant'),
-    path(
-        'plant/<int:plant_id>/',
-        include([
-            path('', views.PlantView.as_view(), name='plant'),
-            path('transplant/', views.NewTransplantView.as_view(), name='new-transplant'),
-        ])),
 
     # plant types
     path('plant-types/', views.PlantTypeListView.as_view(), name='plant-types'),
