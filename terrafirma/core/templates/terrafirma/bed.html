@@ -2,24 +2,24 @@
 {% load extension_tags %}
 
 {% block title %} {{ block.super }} - {{ bed.name }} {% endblock %}
-{% block header %} {{ block.super }}<span> - </span>{% maybe_link bed.name 'bed' env.name bed.name %} {% endblock %}
+{% block header %} {{ block.super }}<span> - </span>{% maybe_link bed.name 'bed' env.abbrev bed.abbrev %} {% endblock %}
 
 {% block content %}
 
-<h2>Bed (<a href={% url 'edit-bed' env.name bed.name %}>Edit</a>)</h2>
+<h2>Bed (<a href={% url 'edit-bed' env.abbrev bed.abbrev %}>Edit</a>)</h2>
 
-<b>Name:</b> {{ bed.long_name }} ({{ bed.name }})
+<b>Name:</b> {{ bed.name }} ({{ bed.abbrev }})
 <br>
-<b>Environment:</b> {{ bed.environment.name }}
+<b>Environment:</b> {{ bed.env }}
 <br>
 <b>Status:</b> {% if bed.active %}Active{% else %}Inactive{% endif %}
 
-<h2>Plants (<a href={% url 'new-plant' env.name bed.name %}>New</a>)</h2>
+<h2>Plants (<a href={% url 'new-plant' env.abbrev bed.abbrev %}>New</a>)</h2>
 
 <ul>
     {% for plant in bed.cur_plants %}
     <li>
-        <a href={% url 'plant' env.name bed.name plant.id %}>{{ plant }}</a>
+        <a href={% url 'plant' env.abbrev bed.abbrev plant.id %}>{{ plant }}</a>
     </li>
     {% empty %}
     <li>No plants</li>

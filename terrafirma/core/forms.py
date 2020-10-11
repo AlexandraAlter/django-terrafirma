@@ -9,12 +9,6 @@ class EnvForm(forms.ModelForm):
         exclude = ['active']
 
 
-class PlantForm(forms.ModelForm):
-    class Meta:
-        model = models.Plant
-        exclude = ['active']
-
-
 class TransplantForm(forms.ModelForm):
     class Meta:
         model = models.Transplanting

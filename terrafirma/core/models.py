@@ -1,6 +1,9 @@
 from django.db import models
-from django.db.models import functions
+from django.db.models import functions, Q, Subquery
 from django.urls import reverse
+from django.core.validators import RegexValidator
+from django.utils import timezone
+from django.utils.translation import gettext_lazy as _
 
 UNIT_SEEDS = 's'
 UNIT_ROWS = 'r'
@@ -8,6 +11,9 @@ UNIT_G = 'g'
 UNIT_COUNT = 'c'
 PLANTING_UNITS = [(UNIT_SEEDS, 'seeds'), (UNIT_ROWS, 'rows')]
 HARVEST_UNITS = [(UNIT_G, 'grams'), (UNIT_COUNT, 'count')]
+
+short_name_validator = RegexValidator(r'^[a-z\-0-9]+\Z',
+                                      _('Only use lowercase a-z, numbers, and hyphens.'))
 
 
 class Note(models.Model):
@@ -22,49 +28,65 @@ class Note(models.Model):
 
 
 class Environment(models.Model):
-    name = models.CharField(max_length=16)
-    long_name = models.CharField(max_length=64)
+    name = models.CharField(max_length=64, unique=True)
+    abbrev = models.CharField(max_length=16,
+                              unique=True,
+                              validators=[short_name_validator],
+                              verbose_name=_('abbreviation'))
     active = models.BooleanField(default=True)
 
     def __repr__(self):
-        return "Environment({}, {}, {})".format(self.name, self.long_name, self.active)
+        return "Environment({}, {}, {})".format(self.abbrev, self.name, self.active)
 
     def __str__(self):
-        if self.active:
-            return "{} ({})".format(self.name, self.long_name)
+        return self.__format__('')
+
+    def __format__(self, format):
+        active = '' if self.active else 'inactive '
+        if format == 'longnameonly':
+            return "{}{}".format(active, self.name)
         else:
-            return "inactive {} ({})".format(self.name, self.long_name)
+            return "{}{} ({})".format(active, self.name, self.abbrev)
 
     def get_absolute_url(self):
-        return reverse('env', kwargs={'env_name': self.name})
+        return reverse('env', kwargs={'env_abbrev': self.abbrev})
 
 
 class Bed(models.Model):
-    name = models.CharField(max_length=16)
-    long_name = models.CharField(max_length=64)
-    environment = models.ForeignKey(Environment, on_delete=models.PROTECT, related_name='beds')
+    name = models.CharField(max_length=64)
+    abbrev = models.CharField(max_length=16,
+                              validators=[short_name_validator],
+                              verbose_name=_('abbreviation'))
+    env = models.ForeignKey(Environment,
+                            on_delete=models.PROTECT,
+                            related_name='beds',
+                            verbose_name=_('environment'))
     active = models.BooleanField(default=True)
 
     @property
-    def env(self):
-        return self.environment
-
-    @property
     def cur_plants(self):
-        return Plant.objects.filter(transplants__active=True).all()
+        return Plant.objects.filter(transplants__bed=self, transplants__active=True).all()
 
     def __repr__(self):
-        return "Bed({}, {}, {}, active={})".format(self.name, self.long_name, self.environment,
-                                                   self.active)
+        return "Bed({}, {}, {}, active={})".format(self.abbrev, self.name, self.env, self.active)
 
     def __str__(self):
-        if self.active:
-            return "{} {}".format(self.environment.name, self.name)
+        return self.__format__('')
+
+    def __format__(self, format):
+        active = '' if self.active else 'inactive '
+        if format == 'nameonly':
+            return "{}{} ({})".format(active, self.name, self.abbrev)
+        elif format == 'longnameonly':
+            return "{}{}".format(active, self.name)
         else:
-            return "inactive {} {}".format(self.environment.name, self.name)
+            return "{}{} ({}) in {}".format(active, self.name, self.abbrev, self.env.name)
 
     def get_absolute_url(self):
-        return reverse('bed', kwargs={'env_name': self.environment.name, 'bed_name': self.name})
+        return reverse('bed', kwargs={'env_abbrev': self.env.abbrev, 'bed_abbrev': self.abbrev})
+
+    class Meta:
+        unique_together = [('abbrev', 'env'), ('name', 'env')]
 
 
 class PlantType(models.Model):
@@ -84,52 +106,84 @@ class PlantType(models.Model):
     def get_absolute_url(self):
         return reverse('plant-type', kwargs={'plant_type_id': self.id})
 
+    class Meta:
+        unique_together = [('common_name', 'variety')]
+
+
+def validate_transplant_current(transplant):
+    return transplant.active
+
+
+class PlantManager(models.Manager):
+    def without_bed(self):
+        transplants = Transplanting.objects.filter(active=True).all()
+        return self.exclude(id__in=Subquery(transplants.values('plant')))
+
 
 class Plant(models.Model):
     type = models.ForeignKey(PlantType, on_delete=models.PROTECT)
     amount = models.PositiveIntegerField()
     unit = models.CharField(max_length=1, choices=PLANTING_UNITS)
     active = models.BooleanField(default=True)
+    cur_transplant = models.ForeignKey('Transplanting',
+                                       on_delete=models.PROTECT,
+                                       related_name='+',
+                                       blank=True,
+                                       null=True)
     beds = models.ManyToManyField(Bed, through='Transplanting')
 
-    @property
-    def cur_transplant(self):
-        return self.transplants.filter(active=True).get()
+    objects = PlantManager()
 
     @property
     def cur_bed(self):
-        return Bed.objects.filter(transplants__active=True, transplants__plant=self).get()
+        return self.cur_transplant.bed
 
     def __repr__(self):
         return "Plant({}, {}, {}, active={})".format(self.type, self.amount, self.unit, self.active)
 
     def __str__(self):
-        if self.active:
-            return "plant {}, {} {}".format(self.type, self.amount, self.get_unit_display())
-        else:
-            return "dead plant {}, {}{}".format(self.type, self.amount, self.unit)
+        active = '' if self.active else 'dead '
+        return "{}plant {}, {} {}".format(active, self.type, self.amount, self.get_unit_display())
 
     def get_absolute_url(self):
         bed = self.cur_bed
         return reverse('plant',
                        kwargs={
-                           'env_name': bed.env,
-                           'bed_name': bed.name,
+                           'env_abbrev': bed.env.abbrev,
+                           'bed_abbrev': bed.abbrev,
                            'plant_id': self.id
                        })
+
+    def clean(self):
+        # current transplant is active and refers to this plant
+        if self.cur_transplant:
+            if not self.cur_transplant.active:
+                raise ValidationError(_('Plants current transplant cannot be inactive.'))
+            if self.cur_transplant.plant != self:
+                raise ValidationError(_('Plants current transplant must self-refer.'))
 
 
 class Transplanting(models.Model):
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT, related_name='transplants')
-    date = models.DateField(auto_now=True)
+    date = models.DateTimeField(default=timezone.now)
     bed = models.ForeignKey(Bed, on_delete=models.PROTECT, related_name='transplants')
-    active = models.BooleanField()
+    active = models.BooleanField(default=True)
 
     def __repr__(self):
         return "Transplanting({}, {}, {})".format(self.plant, self.date, self.bed)
 
     def __str__(self):
-        return "transplanting {} {} {}".format(self.plant, self.date, self.bed)
+        active = 'current' if self.active else 'past'
+        return "{} transplanting {} {} {}".format(active, self.plant, self.date, self.bed)
+
+    class Meta:
+        constraints = [
+            # one active transplant per plant
+            models.UniqueConstraint(fields=['plant'],
+                                    condition=Q(active=True),
+                                    name='unique_active')
+        ]
+        ordering = ['-date']
 
 
 class Harvest(models.Model):
@@ -149,7 +203,11 @@ class Observation(models.Model):
     plant_type = models.ForeignKey(PlantType, on_delete=models.PROTECT, blank=True, null=True)
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT, blank=True, null=True)
     bed = models.ForeignKey(Bed, on_delete=models.PROTECT, blank=True, null=True)
-    environment = models.ForeignKey(Environment, on_delete=models.PROTECT, blank=True, null=True)
+    env = models.ForeignKey(Environment,
+                            on_delete=models.PROTECT,
+                            blank=True,
+                            null=True,
+                            verbose_name=_('environment'))
 
     date = models.DateField(auto_now=True)
 

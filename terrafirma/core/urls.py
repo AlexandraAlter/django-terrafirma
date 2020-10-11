@@ -9,14 +9,14 @@ urlpatterns = [
     # environments
     path('environments/new/', views.NewEnvironmentView.as_view(), name='new-env'),
     path(
-        'environment/<str:env_name>/',
+        'environment/<str:env_abbrev>/',
         include([
             path('', views.EnvView.as_view(), name='env'),
 
             # beds
             path('beds/', views.BedListView.as_view(), name='beds'),
             path('beds/new', views.NewBedView.as_view(), name='new-bed'),
-            path('bed/<str:bed_name>/', include([
+            path('bed/<str:bed_abbrev>/', include([
                 path('', views.BedView.as_view(), name='bed'),
                 path('edit/', views.EditBedView.as_view(), name='edit-bed'),
 
