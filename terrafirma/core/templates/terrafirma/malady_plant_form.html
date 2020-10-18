@@ -1,0 +1,8 @@
+{% extends "terrafirma/plant.html" %}
+{% load extension_tags %}
+{% load new_string_format %}
+
+{% block title %} {{ block.super }} - New Malady {% endblock %}
+{% block header %} {{ block.super }}<span> - New Malady</span> {% endblock %}
+
+{% block content %} {% include 'terrafirma/malady_form.html' %} {% endblock %}

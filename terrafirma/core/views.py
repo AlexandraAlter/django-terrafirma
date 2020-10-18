@@ -48,7 +48,7 @@ class NewPlantTypeView(e_views.CreateView):
 # environments
 
 
-class NewEnvironmentView(e_views.CreateView):
+class NewEnvView(e_views.CreateView):
     template_name = 'terrafirma/new_env.html'
     model = models.Environment
     fields = ['name', 'abbrev']
@@ -67,9 +67,41 @@ class EnvMixin(b_views.ContextMixin):
         return super().get_context_data(env=self.env, **kwargs)
 
 
+class MaybeEnvMixin(b_views.ContextMixin):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.env = models.Environment.objects.get(abbrev=request.GET['env'])
+
+    def url_vars(self):
+        return {'env_abbrev': self.env.abbrev if self.env else None}
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.env:
+            context.update(env=self.env)
+        return context
+
+
 class EnvView(EnvMixin, views.View):
     def get(self, request, *args, **kwargs):
         return render(request, 'terrafirma/env.html', {'env': self.env})
+
+
+class EditEnvView(EnvMixin, e_views.UpdateView):
+    template_name = 'terrafirma/edit_env.html'
+    model = models.Environment
+    fields = ['name', 'abbrev']
+    slug_field = 'abbrev'
+    slug_url_kwarg = 'env_abbrev'
+
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.object = self.env
+
+    def form_valid(self, form):
+        self.object = form.save(commit=False)
+        self.object.save()
+        return redirect('env', env_abbrev=self.env.abbrev)
 
 
 # beds
@@ -99,6 +131,23 @@ class BedMixin(EnvMixin):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(bed=self.bed, **kwargs)
+        return context
+
+
+class MaybeBedMixin(MaybeEnvMixin):
+    def setup(self, request, *args, **kwargs):
+        super().setup(request, *args, **kwargs)
+        self.bed = models.Bed.objects.get(abbrev=request.GET['bed'], env=self.env)
+
+    def url_vars(self):
+        vars = super().url_vars()
+        vars.update({'bed_abbrev': self.bed.abbrev if self.bed else None})
+        return vars
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        if self.bed:
+            context.update(bed=self.bed)
         return context
 
 
@@ -133,47 +182,39 @@ class EditBedView(BedMixin, e_views.UpdateView):
 # plants
 
 
-class PlantListView(BedMixin, views.View):
+class PlantListView(views.View):
     def get(self, request, *args, **kwargs):
         plants = models.Plant.objects.all()
         return render(request, 'terrafirma/plants.html', {'plants': plants})
 
 
-class NewPlantView(BedMixin, e_views.CreateView):
+class NewPlantView(MaybeBedMixin, e_views.CreateView):
     template_name = 'terrafirma/new_plant.html'
     model = models.Plant
-    fields = ['type', 'amount', 'unit']
+    form_class = forms.PlantForm
+
+    def get_initial(self):
+        return {'bed': self.bed} if self.bed else {}
 
     def form_valid(self, form):
         plant = form.save(commit=False)
-        transplant = models.Transplanting(plant=plant, bed=self.bed)
+        transplant = models.Transplanting(plant=plant, bed=form.cleaned_data.bed)
         with transaction.atomic():
             plant.save()
             transplant.save()
             plant.cur_transplant = transplant
-            transplant.save()
             plant.save()
         form.save_m2m()
         return redirect('bed', **self.url_vars())
 
 
-class PlantMixin(BedMixin):
+class PlantMixin(b_views.ContextMixin):
     def setup(self, request, *args, **kwargs):
         super().setup(request, *args, **kwargs)
-        # TODO make this more efficient instead of getting every class above
-        self.plant = get_object_or_404(models.Plant,
-                                       id=kwargs['plant_id'],
-                                       transplants__bed=self.bed,
-                                       transplants__active=True)
-        # self.bed = self.plant.cur_bed
-        # self.env = self.bed.env
+        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
 
     def url_vars(self):
-        return {
-            'env_abbrev': self.env.abbrev,
-            'bed_abbrev': self.bed.abbrev,
-            'plant_id': self.plant.id
-        }
+        return {'plant_id': self.plant.id}
 
     def get_context_data(self, **kwargs):
         return super().get_context_data(plant=self.plant, **kwargs)
@@ -182,10 +223,20 @@ class PlantMixin(BedMixin):
 class PlantView(PlantMixin, views.View):
     def get(self, request, *args, **kwargs):
         return render(request, 'terrafirma/plant.html', {
-            'env': self.env,
-            'bed': self.bed,
             'plant': self.plant,
         })
+
+
+class EditPlantView(PlantMixin, e_views.UpdateView):
+    template_name = 'terrafirma/edit_plant.html'
+    model = models.Plant
+    fields = ['type', 'amount', 'unit']
+    slug_field = 'id'
+    slug_url_kwarg = 'plant_id'
+
+    def form_valid(self, form):
+        plant = form.save()
+        return redirect('plant', **self.url_vars())
 
 
 # transplants
@@ -205,73 +256,41 @@ class NewTransplantView(PlantMixin, e_views.CreateView):
         transplant.active = True
         old_transplant.save()
         transplant.save()
-        return redirect('plant',
-                        env_abbrev=transplant.bed.env.abbrev,
-                        bed_abbrev=transplant.bed.name,
-                        plant_id=transplant.plant.id)
+        return redirect('plant', plant_id=transplant.plant.id)
 
 
 # observations
 
 
-class NewObsView(PlantMixin, e_views.CreateView):
-    http_method_names = ['post']
+class NewPlantObsView(PlantMixin, e_views.CreateView):
     model = models.Observation
-    fields = []
-
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.env = get_object_or_404(models.Environment, name=kwargs['env_abbrev'])
-        self.bed = get_object_or_404(models.Bed, abbrev=kwargs['bed_abbrev'], env=self.env)
-        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
-
-    def get_context_data(self, **kwargs):
-        return super().get_context_data(env=self.env, **kwargs)
+    form_class = forms.ObsForm
+    template_name_suffix = '_plant_form'
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
+        self.object.note = models.Note(text=form.cleaned_data['note'])
+        self.object.note.save()
+        self.object.plant = self.plant
         self.object.save()
-        return redirect('plant',
-                        env_abbrev=self.env.abbrev,
-                        bed_abbrev=self.bed.abbrev,
-                        plant_id=plant.id)
+        return redirect('plant', plant_id=self.plant.id)
 
 
-class NewTrtView(PlantMixin, e_views.CreateView):
-    http_method_names = ['post']
+class NewPlantTrtView(NewPlantObsView):
     model = models.Treatment
-    fields = []
-
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.env = get_object_or_404(models.Environment, name=kwargs['env_abbrev'])
-        self.bed = get_object_or_404(models.Bed, name=kwargs['bed_abbrev'], env=self.env)
-        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
+    form_class = forms.TrtForm
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.save()
-        return redirect('plant',
-                        env_abbrev=self.env.abbrev,
-                        bed_abbrev=self.bed.abbrev,
-                        plant_id=plant.id)
+        return redirect('plant', plant_id=plant.id)
 
 
-class NewMalView(PlantMixin, e_views.CreateView):
-    http_method_names = ['post']
+class NewPlantMalView(NewPlantObsView):
     model = models.Malady
-    fields = []
-
-    def setup(self, request, *args, **kwargs):
-        super().setup(request, *args, **kwargs)
-        self.env = get_object_or_404(models.Environment, name=kwargs['env_abbrev'])
-        self.bed = get_object_or_404(models.Bed, name=kwargs['bed_abbrev'], env=self.env)
-        self.plant = get_object_or_404(models.Plant, id=kwargs['plant_id'])
+    form_class = forms.MalForm
 
     def form_valid(self, form):
         self.object = form.save(commit=False)
         self.object.save()
-        return redirect('plant',
-                        env_abbrev=self.env.abbrev,
-                        bed_abbrev=self.bed.abbrev,
-                        plant_id=plant.id)
+        return redirect('plant', plant_id=plant.id)

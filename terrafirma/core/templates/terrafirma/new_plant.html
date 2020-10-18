@@ -1,7 +1,8 @@
-{% extends "terrafirma/bed.html" %}
+{% extends "terrafirma/plants.html" %}
 {% load extension_tags %}
 
 {% block title %} {{ block.super }} - New Plant {% endblock %}
+{% block media %} {{  form.media  }} {% endblock %}
 {% block header %} {{ block.super }}<span> - New Plant</span> {% endblock %}
 
 {% block content %}
@@ -10,7 +11,12 @@
 
 <form method="post">
     {% csrf_token %}
-    {{ form.as_ul }}
+    {{ form.type.label }}: {{ form.type }}
+    <br>
+    {{ form.amount.label }}: {{ form.amount }} {{ form.unit }}
+    <br>
+    {{ form.bed.label }}: {{ form.bed }}
+    <br>
     <input type="submit" value="Submit"/>
 </form>
 

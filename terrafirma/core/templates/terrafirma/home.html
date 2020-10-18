@@ -7,22 +7,26 @@
 
 <ul>
     {% for env in env_list %}
-    <li><a href={% url 'env' env.abbrev %}>{{ env }}</a></li>
+    <li><a href={% url 'env' env.abbrev %}>{{ env }}</a> (<a href={% url 'new-bed' env.abbrev %}>New Bed</a>)</li>
+
+    {% for bed in env.beds.all %}
+    {% if forloop.first %}<ul>{% endif %}
+        <li><a href={% url 'bed' env.abbrev bed.abbrev %}>{{ bed|newstrfmt:"{:no-env}" }}</a></li>
+    {% if forloop.last %}</ul>{% endif %}
+    {% endfor %}
+
     {% empty %}
     <li>No environments</li>
     {% endfor %}
 </ul>
 
 {% for plant in orphaned %}
-{% if forloop.first %}
-<h2>Orphaned plants</h2>
-<ul>
-{% endif %}
+{% if forloop.first %}<h2>Orphaned plants</h2><ul>{% endif %}
     <li>{{ plant }}</li>
-{% if forloop.last %}
-</ul>
-{% endif %}
+{% if forloop.last %}</ul>{% endif %}
 {% endfor %}
+
+<h2><a href={% url 'plants' %}>Plants</a></h2>
 
 <h2><a href={% url 'plant-types' %}>Plants Types</a></h2>
 

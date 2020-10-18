@@ -1,0 +1,9 @@
+ul.unit_widget {
+    display: inline-block;
+    padding-left: 0;
+    margin: 0;
+}
+
+ul.unit_widget li {
+    display: inline-block;
+}

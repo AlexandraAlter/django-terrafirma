@@ -1,34 +1,49 @@
-{% extends "terrafirma/bed.html" %}
+{% extends "terrafirma/plants.html" %}
 {% load extension_tags %}
+{% load new_string_format %}
 
 {% block title %} {{ block.super }} - {{ plant.id }} {% endblock %}
-{% block header %} {{ block.super }}<span> - </span>{{ plant.id }} {% endblock %}
+{% block header %} {{ block.super }}<span> - </span>{% maybe_link plant.type 'plant' plant.id %} {% endblock %}
 
 {% block content %}
 
-<h2>Plant</h2>
+{% url 'edit-plant' plant.id as edit_plant_url %}
+{% url 'plant-type' plant.type.id as plant_type_url %}
+{% url 'new-trans' plant.id as new_trans_url %}
+{% url 'new-obs' plant.id as new_obs_url %}
+{% url 'new-trt' plant.id as new_trt_url %}
+{% url 'new-mal' plant.id as new_mal_url %}
+{% url 'bed' plant.cur_bed.env.abbrev plant.cur_bed.abbrev as bed_url %}
 
-<b>Common Name:</b> {{ plant.type.common_name }}
-<br> <b>Variety:</b> {{ plant.type.variety }}
-<br> <b>Amount:</b> {{ plant.amount }} {{ plant.get_unit_display }}
-<br> <b>Alive:</b> {{ plant.active }}
-<br> <b>Bed:</b> {{ plant.cur_bed }}
+<h2>Plant Details (<a href={{ edit_plant_url }}>Edit</a>)</h2>
 
-<h2>Transplantings (<a href={% url 'new-trans' env.abbrev bed.abbrev plant.id %}>New</a>)</h2>
+<b>Type:</b>&nbsp;<a href={{ plant_type_url }}>{{ plant.type }}</a>
+<br>
+<b>Amount:</b> {{ plant.amount }} {{ plant.get_unit_display }}
+<br>
+<b>Alive:</b> {{ plant.active }}
+<br>
+<b>Bed:</b>&nbsp;<a href={{ bed_url }}>{{ plant.cur_bed|newstrfmt:"{:env-and-name}" }}</a>
+
+<h2>Transplantings (<a href={{ new_trans_url }}>New</a>)</h2>
 
 <ul>
-    {% for tr in plant.transplants.reverse.all %}
-    <li>{{ tr }}</li>
+    {% for tr in plant.transplants.all %}
+    <li>{{ tr|newstrfmt:"{:time_and_bed}" }}</li>
     {% empty %}
     <li>No recorded transplantings</li>
     {% endfor %}
 </ul>
 
-<h2>Observations</h2>
+<h2><span>Observations (</span>
+    <a href={{ new_obs_url }}>New Observation</a><span>, </span>
+    <a href={{ new_trt_url }}>New Treatment</a><span>, </span>
+    <a href={{ new_mal_url }}>New Malady</a><span>)</span>
+</h2>
 
 <ul>
-    {% for observation in observations %}
-    <li><a href={% url 'plant' env.abbrev bed.abbrev plant.id %}>Plant!</a></li>
+    {% for obs in plant.observation_set.all %}
+    <li><a href="">Plant!</a></li>
     {% empty %}
     <li>No recorded observations</li>
     {% endfor %}

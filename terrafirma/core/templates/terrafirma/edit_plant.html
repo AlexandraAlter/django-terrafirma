@@ -1,0 +1,16 @@
+{% extends "terrafirma/plant.html" %}
+{% load extension_tags %}
+{% load new_string_format %}
+
+{% block title %} {{ block.super }} - Edit {% endblock %}
+{% block header %} {{ block.super }}<span> - Edit</span> {% endblock %}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" value="Submit"/>
+</form>
+
+{% endblock %}

@@ -66,3 +66,10 @@ def maybe_link(context, text, url, *args, **kwargs):
         'link': link if not request.path == link else None,
         'text': text,
     }
+
+
+@register.simple_tag(takes_context=True)
+def path_env_bed(context):
+    env = context['env']
+    bed = context['bed']
+    return '?env={}&bed={}'.format(env.abbrev, bed.abbrev)

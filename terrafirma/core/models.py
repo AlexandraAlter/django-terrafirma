@@ -18,7 +18,6 @@ short_name_validator = RegexValidator(r'^[a-z\-0-9]+\Z',
 
 class Note(models.Model):
     text = models.TextField(blank=True)
-    text_md5 = models.CharField(max_length=32, default=functions.MD5('text'))
 
     def __repr__(self):
         return "PlantType({}, {})".format(self.common_name, self.variety)
@@ -43,10 +42,12 @@ class Environment(models.Model):
 
     def __format__(self, format):
         active = '' if self.active else 'inactive '
-        if format == 'longnameonly':
+        if format == '':
+            return "{}{} ({})".format(active, self.name, self.abbrev)
+        elif format == 'long-name-only':
             return "{}{}".format(active, self.name)
         else:
-            return "{}{} ({})".format(active, self.name, self.abbrev)
+            raise TypeError(_('Invalid format string.'))
 
     def get_absolute_url(self):
         return reverse('env', kwargs={'env_abbrev': self.abbrev})
@@ -75,12 +76,16 @@ class Bed(models.Model):
 
     def __format__(self, format):
         active = '' if self.active else 'inactive '
-        if format == 'nameonly':
-            return "{}{} ({})".format(active, self.name, self.abbrev)
-        elif format == 'longnameonly':
-            return "{}{}".format(active, self.name)
-        else:
+        if format == '':
             return "{}{} ({}) in {}".format(active, self.name, self.abbrev, self.env.name)
+        elif format == 'no-env':
+            return "{}{} ({})".format(active, self.name, self.abbrev)
+        elif format == 'only-name':
+            return "{}{}".format(active, self.name)
+        elif format == 'env-and-name':
+            return "{}{} {}".format(active, self.env.name, self.name)
+        else:
+            raise TypeError(_('Invalid format string.'))
 
     def get_absolute_url(self):
         return reverse('bed', kwargs={'env_abbrev': self.env.abbrev, 'bed_abbrev': self.abbrev})
@@ -123,7 +128,7 @@ class PlantManager(models.Manager):
 class Plant(models.Model):
     type = models.ForeignKey(PlantType, on_delete=models.PROTECT)
     amount = models.PositiveIntegerField()
-    unit = models.CharField(max_length=1, choices=PLANTING_UNITS)
+    unit = models.CharField(max_length=1, choices=PLANTING_UNITS, blank=False, default=UNIT_SEEDS)
     active = models.BooleanField(default=True)
     cur_transplant = models.ForeignKey('Transplanting',
                                        on_delete=models.PROTECT,
@@ -142,8 +147,17 @@ class Plant(models.Model):
         return "Plant({}, {}, {}, active={})".format(self.type, self.amount, self.unit, self.active)
 
     def __str__(self):
+        return self.__format__('')
+
+    def __format__(self, format):
         active = '' if self.active else 'dead '
-        return "{}plant {}, {} {}".format(active, self.type, self.amount, self.get_unit_display())
+        if format == '':
+            return "{}plant {}, {} {}".format(active, self.type, self.amount,
+                                              self.get_unit_display())
+        elif format == 'name':
+            return "{} {}, {} {}".format(active, self.type, self.amount, self.get_unit_display())
+        else:
+            raise TypeError(_('Invalid format string.'))
 
     def get_absolute_url(self):
         bed = self.cur_bed
@@ -173,8 +187,17 @@ class Transplanting(models.Model):
         return "Transplanting({}, {}, {})".format(self.plant, self.date, self.bed)
 
     def __str__(self):
+        return self.__format__('')
+
+    def __format__(self, format):
         active = 'current' if self.active else 'past'
-        return "{} transplanting {} {} {}".format(active, self.plant, self.date, self.bed)
+        if format == '':
+            return "{} transplanting {:noname} {:%Y-%m-%d %H:%M} in {:env-and-name}".format(
+                active, self.plant, self.date, self.bed)
+        elif format == 'time_and_bed':
+            return "{} at {:%Y-%m-%d %H:%M} in {:env-and-name}".format(active, self.date, self.bed)
+        else:
+            raise TypeError(_('Invalid format string.'))
 
     class Meta:
         constraints = [
@@ -199,20 +222,28 @@ class Harvest(models.Model):
         return "harvest".format()
 
 
-class Observation(models.Model):
+class ObservationKind(models.Model):
     plant_type = models.ForeignKey(PlantType, on_delete=models.PROTECT, blank=True, null=True)
+
     plant = models.ForeignKey(Plant, on_delete=models.PROTECT, blank=True, null=True)
+
     bed = models.ForeignKey(Bed, on_delete=models.PROTECT, blank=True, null=True)
+
     env = models.ForeignKey(Environment,
                             on_delete=models.PROTECT,
                             blank=True,
                             null=True,
                             verbose_name=_('environment'))
 
-    date = models.DateField(auto_now=True)
+    when = models.DateTimeField(default=timezone.now)
 
-    text = models.ForeignKey(Note, on_delete=models.PROTECT, blank=True)
+    note = models.ForeignKey(Note, on_delete=models.PROTECT, blank=True)
 
+    class Meta:
+        abstract = True
+
+
+class Observation(ObservationKind):
     def __repr__(self):
         return "Observation()".format()
 
@@ -231,7 +262,7 @@ class TreatmentType(models.Model):
         return "treatment type {} {}".format(self.type, self.name)
 
 
-class Treatment(Observation):
+class Treatment(ObservationKind):
     type = models.ForeignKey(TreatmentType, on_delete=models.PROTECT)
 
     def __repr__(self):
@@ -254,12 +285,8 @@ class MaladyType(models.Model):
         return "malady type {} {}".format(self.type.name, self.name)
 
 
-class Malady(models.Model):
-    malady = models.ForeignKey(MaladyType, on_delete=models.PROTECT)
-    date = models.DateField(auto_now=True)
-    bed = models.ForeignKey(Bed, on_delete=models.PROTECT)
-    sowing = models.ForeignKey(Plant, on_delete=models.PROTECT)
-    details = models.ForeignKey(Note, on_delete=models.PROTECT, blank=True)
+class Malady(ObservationKind):
+    type = models.ForeignKey(MaladyType, on_delete=models.PROTECT)
 
     def __repr__(self):
         return "Malady({}, {}, {})".format(self.malady, self.date, self.bed)
