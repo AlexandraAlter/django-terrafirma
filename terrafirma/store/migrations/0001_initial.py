@@ -16,12 +16,18 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='StoreSale',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(auto_created=True,
+                                  primary_key=True,
+                                  serialize=False,
+                                  verbose_name='ID')),
                 ('amount', models.PositiveIntegerField(blank=True)),
                 ('unit', models.CharField(choices=[('g', 'grams'), ('c', 'count')], max_length=1)),
                 ('date', models.DateField(auto_now=True)),
                 ('value', models.DecimalField(decimal_places=2, max_digits=8)),
-                ('plant', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='terrafirma.plant')),
+                ('plant',
+                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT,
+                                   to='terrafirma.plant')),
             ],
             options={
                 'abstract': False,

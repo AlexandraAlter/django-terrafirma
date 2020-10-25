@@ -16,11 +16,19 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Map',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(auto_created=True,
+                                  primary_key=True,
+                                  serialize=False,
+                                  verbose_name='ID')),
                 ('pixels_x', models.PositiveIntegerField()),
                 ('pixels_y', models.PositiveIntegerField()),
                 ('spec', models.JSONField()),
-                ('environment', models.ForeignKey(blank=True, null=True, on_delete=django.db.models.deletion.PROTECT, to='terrafirma.environment')),
+                ('environment',
+                 models.ForeignKey(blank=True,
+                                   null=True,
+                                   on_delete=django.db.models.deletion.PROTECT,
+                                   to='terrafirma.environment')),
             ],
         ),
     ]

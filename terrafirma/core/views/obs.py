@@ -53,6 +53,7 @@ class NewPlantTrtView(NewPlantObsView):
         self.object.save()
         return redirect('plant', plant_id=plant.id)
 
+
 # malady types
 
 

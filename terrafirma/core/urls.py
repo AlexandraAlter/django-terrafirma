@@ -17,23 +17,27 @@ urlpatterns = [
             # beds
             path('beds/', views.BedListView.as_view(), name='beds'),
             path('beds/new', views.NewBedView.as_view(), name='new-bed'),
-            path('bed/<str:bed_abbrev>/', include([
-                path('', views.BedView.as_view(), name='bed'),
-                path('edit/', views.EditBedView.as_view(), name='edit-bed'),
-            ])),
+            path(
+                'bed/<str:bed_abbrev>/',
+                include([
+                    path('', views.BedView.as_view(), name='bed'),
+                    path('edit/', views.EditBedView.as_view(), name='edit-bed'),
+                ])),
         ])),
 
     # plants
     path('plants/', views.PlantListView.as_view(), name='plants'),
     path('plants/new/', views.NewPlantView.as_view(), name='new-plant'),
-    path('plant/<int:plant_id>/', include([
-        path('', views.PlantView.as_view(), name='plant'),
-        path('edit/', views.EditPlantView.as_view(), name='edit-plant'),
-        path('new-obs/', views.NewPlantObsView.as_view(), name='new-obs'),
-        path('new-trt/', views.NewPlantTrtView.as_view(), name='new-trt'),
-        path('new-mal/', views.NewPlantMalView.as_view(), name='new-mal'),
-        path('transplant/', views.NewTransplantView.as_view(), name='new-trans'),
-    ])),
+    path(
+        'plant/<int:plant_id>/',
+        include([
+            path('', views.PlantView.as_view(), name='plant'),
+            path('edit/', views.EditPlantView.as_view(), name='edit-plant'),
+            path('new-obs/', views.NewPlantObsView.as_view(), name='new-obs'),
+            path('new-trt/', views.NewPlantTrtView.as_view(), name='new-trt'),
+            path('new-mal/', views.NewPlantMalView.as_view(), name='new-mal'),
+            path('transplant/', views.NewTransplantView.as_view(), name='new-trans'),
+        ])),
 
     # plant types
     path('plant-types/', views.PlantTypeListView.as_view(), name='plant-types'),

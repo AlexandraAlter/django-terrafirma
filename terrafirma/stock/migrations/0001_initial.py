@@ -16,23 +16,37 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='Stock',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(auto_created=True,
+                                  primary_key=True,
+                                  serialize=False,
+                                  verbose_name='ID')),
             ],
         ),
         migrations.CreateModel(
             name='StockAddition',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(auto_created=True,
+                                  primary_key=True,
+                                  serialize=False,
+                                  verbose_name='ID')),
             ],
         ),
         migrations.CreateModel(
             name='StockRemoval',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(auto_created=True,
+                                  primary_key=True,
+                                  serialize=False,
+                                  verbose_name='ID')),
                 ('amount', models.PositiveIntegerField(blank=True)),
                 ('unit', models.CharField(choices=[('g', 'grams'), ('c', 'count')], max_length=1)),
                 ('date', models.DateField(auto_now=True)),
-                ('plant', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='terrafirma.plant')),
+                ('plant',
+                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT,
+                                   to='terrafirma.plant')),
             ],
             options={
                 'abstract': False,
@@ -41,11 +55,17 @@ class Migration(migrations.Migration):
         migrations.CreateModel(
             name='StockExpiry',
             fields=[
-                ('id', models.AutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('id',
+                 models.AutoField(auto_created=True,
+                                  primary_key=True,
+                                  serialize=False,
+                                  verbose_name='ID')),
                 ('amount', models.PositiveIntegerField(blank=True)),
                 ('unit', models.CharField(choices=[('g', 'grams'), ('c', 'count')], max_length=1)),
                 ('date', models.DateField(auto_now=True)),
-                ('plant', models.ForeignKey(on_delete=django.db.models.deletion.PROTECT, to='terrafirma.plant')),
+                ('plant',
+                 models.ForeignKey(on_delete=django.db.models.deletion.PROTECT,
+                                   to='terrafirma.plant')),
             ],
             options={
                 'verbose_name_plural': 'stock expiries',
