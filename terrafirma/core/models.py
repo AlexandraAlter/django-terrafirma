@@ -20,7 +20,7 @@ class Note(models.Model):
     text = models.TextField(blank=True)
 
     def __repr__(self):
-        return "PlantType({}, {})".format(self.common_name, self.variety)
+        pass
 
     def __str__(self):
         return "char[{}]".format(len(self.text))
@@ -44,7 +44,7 @@ class Environment(models.Model):
         active = '' if self.active else 'inactive '
         if format == '':
             return "{}{} ({})".format(active, self.name, self.abbrev)
-        elif format == 'long-name-only':
+        elif format == 'only-name':
             return "{}{}".format(active, self.name)
         else:
             raise TypeError(_('Invalid format string.'))
@@ -126,7 +126,7 @@ class PlantManager(models.Manager):
 
 
 class Plant(models.Model):
-    type = models.ForeignKey(PlantType, on_delete=models.PROTECT)
+    type = models.ForeignKey(PlantType, on_delete=models.PROTECT, related_name='plants')
     amount = models.PositiveIntegerField()
     unit = models.CharField(max_length=1, choices=PLANTING_UNITS, blank=False, default=UNIT_SEEDS)
     active = models.BooleanField(default=True)
@@ -161,12 +161,7 @@ class Plant(models.Model):
 
     def get_absolute_url(self):
         bed = self.cur_bed
-        return reverse('plant',
-                       kwargs={
-                           'env_abbrev': bed.env.abbrev,
-                           'bed_abbrev': bed.abbrev,
-                           'plant_id': self.id
-                       })
+        return reverse('plant', kwargs={'plant_id': self.id})
 
     def clean(self):
         # current transplant is active and refers to this plant
@@ -260,6 +255,9 @@ class TreatmentType(models.Model):
 
     def __str__(self):
         return "treatment type {} {}".format(self.type, self.name)
+
+    def get_absolute_url(self):
+        return reverse('trt-type', kwargs={'trt_type_id': self.id})
 
 
 class Treatment(ObservationKind):
