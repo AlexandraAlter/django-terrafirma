@@ -91,7 +91,7 @@ WSGI_APPLICATION = 'dev.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'dev',
+        'NAME': 'terrafirma',
         'USER': 'dev',
         'PASSWORD': 'dev',
         'HOST': 'localhost',
