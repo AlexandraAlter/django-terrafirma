@@ -1,4 +1,6 @@
-<h2>New Observation</h2>
+{% load extension_tags %}
+
+<h2>{% form_kind "Observation" %}</h2>
 
 <form method="post">
     {% csrf_token %}

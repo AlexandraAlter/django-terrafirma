@@ -18,7 +18,7 @@ class HomeView(views.View):
             'num_plants_alive': models.Plant.objects.filter(active=True).count(),
             'num_plants_dead': models.Plant.objects.filter(active=False).count(),
             'num_plant_types': models.PlantType.objects.count(),
-            'num_trt_types': models.Treatment.objects.count(),
-            'num_mal_types': models.Malady.objects.count(),
+            'num_trt_types': models.TreatmentType.objects.count(),
+            'num_mal_types': models.MaladyType.objects.count(),
         }
         return render(request, 'terrafirma/home.html', context)

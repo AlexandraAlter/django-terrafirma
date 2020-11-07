@@ -1,7 +1,8 @@
+from django.core.exceptions import ValidationError
+from django.core.validators import RegexValidator
 from django.db import models
 from django.db.models import functions, Q, Subquery
 from django.urls import reverse
-from django.core.validators import RegexValidator
 from django.utils import timezone
 from django.utils.translation import gettext_lazy as _
 
@@ -163,6 +164,9 @@ class Plant(models.Model):
         bed = self.cur_bed
         return reverse('plant', kwargs={'plant_id': self.id})
 
+    def get_edit_url(self):
+        return reverse('edit-plant', kwargs={'plant_id': self.id})
+
     def clean(self):
         # current transplant is active and refers to this plant
         if self.cur_transplant:
@@ -281,6 +285,9 @@ class MaladyType(models.Model):
 
     def __str__(self):
         return "malady type {} {}".format(self.type.name, self.name)
+
+    def get_absolute_url(self):
+        return reverse('mal-type', kwargs={'mal_type_id': self.id})
 
 
 class Malady(ObservationKind):

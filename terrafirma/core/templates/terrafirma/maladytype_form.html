@@ -1,0 +1,17 @@
+{% extends 'terrafirma/maladytype_list.html' %}
+{% load extension_tags %}
+
+{% block title %} {{ block.super }} - {% form_kind 'Malady Type' %} {% endblock %}
+{% block header %} {{ block.super }}<span> - {% form_kind 'Malady Type' %}</span> {% endblock %}
+
+{% block content %}
+
+<h2>{% form_kind 'Malady Type' %}</h2>
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" value="Submit"/>
+</form>
+
+{% endblock %}

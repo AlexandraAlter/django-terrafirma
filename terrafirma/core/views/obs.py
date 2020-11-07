@@ -41,6 +41,12 @@ class TreatmentTypeView(g_views.DetailView):
     slug_url_kwarg = 'trt_type_id'
 
 
+class EditTreatmentTypeView(e_views.UpdateView):
+    model = models.TreatmentType
+    slug_field = 'id'
+    slug_url_kwarg = 'trt_type_id'
+
+
 # treatments
 
 
@@ -63,11 +69,18 @@ class MaladyTypeListView(g_views.ListView):
 
 class NewMaladyTypeView(e_views.CreateView):
     model = models.MaladyType
-    fields = ['name', 'type']
+    form_class = forms.MalTypeForm
 
 
 class MaladyTypeView(g_views.DetailView):
     model = models.MaladyType
+    slug_field = 'id'
+    slug_url_kwarg = 'mal_type_id'
+
+
+class EditMaladyTypeView(e_views.UpdateView):
+    model = models.MaladyType
+    fields = ['name', 'type']
     slug_field = 'id'
     slug_url_kwarg = 'mal_type_id'
 

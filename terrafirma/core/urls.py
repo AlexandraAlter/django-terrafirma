@@ -48,9 +48,11 @@ urlpatterns = [
     path('treatment-types/', views.TreatmentTypeListView.as_view(), name='trt-types'),
     path('treatment-types/new/', views.NewTreatmentTypeView.as_view(), name='new-trt-type'),
     path('treatment-type/<int:trt_type_id>/', views.TreatmentTypeView.as_view(), name='trt-type'),
+    path('treatment-type/<int:trt>/edit/', views.EditTreatmentTypeView.as_view(), name='edit-trt-type'),
 
     # # malady types
     path('malady-types/', views.MaladyTypeListView.as_view(), name='mal-types'),
     path('malady-types/new/', views.NewMaladyTypeView.as_view(), name='new-mal-type'),
     path('malady-type/<int:mal_type_id>/', views.MaladyTypeView.as_view(), name='mal-type'),
+    path('malady-type/<int:mal_type_id>/edit/', views.EditMaladyTypeView.as_view(), name='edit-mal-type'),
 ]

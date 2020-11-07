@@ -1,12 +1,10 @@
 {% extends "terrafirma/treatmenttype_list.html" %}
 {% load extension_tags %}
 
-{% block title %} {{ block.super }} - New Treatment Type {% endblock %}
-{% block header %} {{ block.super }}<span> - New Treatment Type</span> {% endblock %}
+{% block title %} {{ block.super }} - {% form_kind "Treatment Type" %} {% endblock %}
+{% block header %} {{ block.super }}<span> - {% form_kind "Treatment Type" %}</span> {% endblock %}
 
 {% block content %}
-
-<h2>New Treatment Type</h2>
 
 <form method="post">
     {% csrf_token %}

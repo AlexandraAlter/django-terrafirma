@@ -1,17 +1,19 @@
-{% extends "terrafirma/base.html" %}
+{% extends 'terrafirma/base.html' %}
 {% load extension_tags %}
 {% load new_string_format %}
 
 {% block title %} {{ block.super }} - Environments - {{ env.name|capfirst }} {% endblock %}
 {% block header %}
-{{ block.super }}<span> - </span>{% maybe_link 'Environments' 'home' %}<span> - </span>{% maybe_link env.name|capfirst 'env' env.abbrev %}
+{{ block.super }}<span> - </span>
+{% maybe_link 'Environments' 'home' %}<span> - </span>
+{% maybe_link env.name|capfirst 'env' env.abbrev %}
 {% endblock %}
 
 {% block content %}
 
-{% url 'edit-env' env.abbrev as edit_env_url %}
-{% url 'del-env' env.abbrev as del_env_url %}
-<h2>Environment Details (<a href={{ edit_env_url }}>Edit</a>, <a href={{ del_env_url }}>Delete</a>)</h2>
+{% url 'edit-env' env.abbrev as edit_url %}
+{% url 'del-env' env.abbrev as del_url %}
+<h2>Environment Details (<a href={{ edit_url }}>Edit</a>, <a href={{ del_url }}>Delete</a>)</h2>
 
 <b>Name:</b> {{ env.name }} ({{ env.abbrev }})
 <br>
@@ -23,7 +25,7 @@
 <ul>
     {% for bed in env.beds.all %}
     <li>
-        <a href={% url 'bed' env.abbrev bed.abbrev %}><span>{{ bed|newstrfmt:"{:only-name}" }}</span></a>
+        <a href={% url 'bed' env.abbrev bed.abbrev %}><span>{{ bed|newstrfmt:'{:only-name}' }}</span></a>
         <span> (<a href={% url 'edit-bed' env.abbrev bed.abbrev %}>Edit</a>)</span>
     </li>
     {% empty %}

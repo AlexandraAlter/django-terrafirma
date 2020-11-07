@@ -1,13 +1,13 @@
-{% extends "terrafirma/plant_list.html" %}
+{% extends object|yesno:"terrafirma/plant_detail.html,terrafirma/plant_list.html" %}
 {% load extension_tags %}
 
-{% block title %} {{ block.super }} - New Plant {% endblock %}
-{% block media %} {{  form.media  }} {% endblock %}
-{% block header %} {{ block.super }}<span> - New Plant</span> {% endblock %}
+{% block title %} {{ block.super }} - {% form_kind "Plant" %} {% endblock %}
+{% block media %} {{ form.media }} {% endblock %}
+{% block header %} {{ block.super }}<span> - {% form_kind "Plant" %}</span> {% endblock %}
 
 {% block content %}
 
-<h2>New Plant</h2>
+{% include 'terrafirma/_form_errors.html' %}
 
 <form method="post">
     {% csrf_token %}
@@ -15,8 +15,10 @@
     <br>
     {{ form.amount.label }}: {{ form.amount }} {{ form.unit }}
     <br>
+    {% if not object %}
     {{ form.bed.label }}: {{ form.bed }}
     <br>
+    {% endif %}
     <input type="submit" value="Submit"/>
 </form>
 

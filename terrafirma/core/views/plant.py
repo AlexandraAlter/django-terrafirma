@@ -7,8 +7,6 @@ from django.db import transaction
 from .. import forms, models
 from .bed import BedMixin, MaybeBedMixin
 
-# plant types
-
 
 class PlantTypeListView(g_views.ListView):
     model = models.PlantType
@@ -29,30 +27,8 @@ class NewPlantTypeView(e_views.CreateView):
         return redirect('plant-types')
 
 
-# plants
-
-
 class PlantListView(g_views.ListView):
     model = models.Plant
-
-
-class NewPlantView(MaybeBedMixin, e_views.CreateView):
-    model = models.Plant
-    form_class = forms.PlantForm
-
-    def get_initial(self):
-        return {'bed': self.bed} if self.bed else {}
-
-    def form_valid(self, form):
-        plant = form.save(commit=False)
-        transplant = models.Transplanting(plant=plant, bed=form.cleaned_data.bed)
-        with transaction.atomic():
-            plant.save()
-            transplant.save()
-            plant.cur_transplant = transplant
-            plant.save()
-        form.save_m2m()
-        return redirect('bed', **self.url_vars())
 
 
 class PlantMixin(b_views.ContextMixin):
@@ -73,15 +49,30 @@ class PlantView(PlantMixin, g_views.DetailView):
     slug_url_kwarg = 'plant_id'
 
 
+class NewPlantView(MaybeBedMixin, e_views.CreateView):
+    model = models.Plant
+    form_class = forms.PlantForm
+
+    def get_initial(self):
+        return {'bed': self.bed} if self.bed else {}
+
+    @transaction.atomic
+    def form_valid(self, form):
+        plant = form.save(commit=False)
+        transplant = models.Transplanting(plant=plant, bed=form.cleaned_data['bed'])
+        plant.save()
+        transplant.save()
+        plant.cur_transplant = transplant
+        plant.save()
+        form.save_m2m()
+        return redirect('bed', **self.url_vars())
+
+
 class EditPlantView(PlantMixin, e_views.UpdateView):
-    template_name_suffix = '_edit_form'
     model = models.Plant
     fields = ['type', 'amount', 'unit']
     slug_field = 'id'
     slug_url_kwarg = 'plant_id'
-
-
-# transplants
 
 
 class NewTransplantView(PlantMixin, e_views.CreateView):
@@ -99,3 +90,4 @@ class NewTransplantView(PlantMixin, e_views.CreateView):
         old_transplant.save()
         transplant.save()
         return redirect('plant', plant_id=transplant.plant.id)
+

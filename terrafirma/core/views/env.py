@@ -1,15 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.urls import reverse_lazy
 from django import views
+from django.views import generic as g_views
 from django.views.generic import base as b_views, edit as e_views
 
 from .. import forms, models
 
-# environments
-
 
 class NewEnvView(e_views.CreateView):
-    template_name = 'terrafirma/new_env.html'
     model = models.Environment
     fields = ['name', 'abbrev']
     success_url = reverse_lazy('home')
@@ -42,13 +40,13 @@ class MaybeEnvMixin(b_views.ContextMixin):
         return context
 
 
-class EnvView(EnvMixin, views.View):
-    def get(self, request, *args, **kwargs):
-        return render(request, 'terrafirma/env.html', {'env': self.env})
+class EnvView(EnvMixin, g_views.DetailView):
+    model = models.Environment
+    slug_field = 'abbrev'
+    slug_url_kwarg = 'env_abbrev'
 
 
 class EditEnvView(EnvMixin, e_views.UpdateView):
-    template_name = 'terrafirma/edit_env.html'
     model = models.Environment
     fields = ['name', 'abbrev']
     slug_field = 'abbrev'

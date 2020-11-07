@@ -1,12 +1,10 @@
 {% extends "terrafirma/plant_detail.html" %}
 {% load extension_tags %}
 
-{% block title %} {{ block.super }} - New Transplant {% endblock %}
-{% block header %} {{ block.super }}<span> - New Transplant</span> {% endblock %}
+{% block title %} {{ block.super }} - {% form_kind "Transplant" %} {% endblock %}
+{% block header %} {{ block.super }}<span> - {% form_kind "Transplant" %}</span> {% endblock %}
 
 {% block content %}
-
-<h2>New Transplant</h2>
 
 <form method="post">
     {% csrf_token %}

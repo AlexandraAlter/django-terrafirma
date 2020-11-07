@@ -10,7 +10,7 @@
 
 <ul>
     {% for trt in object_list %}
-    <span><a href={{ trt.get_absolute_url }}>{{ trt.name }}</a></span>
+    <li><a href={{ trt.get_absolute_url }}>{{ trt.name }}</a></li>
     {% empty %}
     <li>No treatment types</li>
     {% endfor %}

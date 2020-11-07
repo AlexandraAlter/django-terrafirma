@@ -73,3 +73,10 @@ def path_env_bed(context):
     env = context['env']
     bed = context['bed']
     return '?env={}&bed={}'.format(env.abbrev, bed.abbrev)
+
+
+@register.simple_tag(takes_context=True)
+def form_kind(context, obj_type=None):
+    return 'Edit' if context.get('object', None) else 'New {}'.format(obj_type)
+
+

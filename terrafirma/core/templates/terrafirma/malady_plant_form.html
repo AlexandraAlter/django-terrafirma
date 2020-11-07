@@ -2,7 +2,7 @@
 {% load extension_tags %}
 {% load new_string_format %}
 
-{% block title %} {{ block.super }} - New Malady {% endblock %}
-{% block header %} {{ block.super }}<span> - New Malady</span> {% endblock %}
+{% block title %} {{ block.super }} - {% form_kind "Malady" %} {% endblock %}
+{% block header %} {{ block.super }}<span> - {% form_kind "Malady" %}</span> {% endblock %}
 
 {% block content %} {% include 'terrafirma/malady_form.html' %} {% endblock %}

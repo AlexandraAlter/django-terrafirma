@@ -1,15 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django import views
+from django.views import generic as g_views
 from django.views.generic import base as b_views, edit as e_views
 
 from .. import forms, models
 from .env import EnvMixin, MaybeEnvMixin
 
-# beds
-
 
 class NewBedView(EnvMixin, e_views.CreateView):
-    template_name = 'terrafirma/new_bed.html'
     model = models.Bed
     fields = ['name', 'abbrev']
 
@@ -58,13 +56,17 @@ class BedListView(views.View):
         return render(request, 'terrafirma/beds.html', {'beds': beds})
 
 
-class BedView(BedMixin, views.View):
-    def get(self, request, *args, **kwargs):
-        return render(request, 'terrafirma/bed.html', {'env': self.env, 'bed': self.bed})
+class BedView(BedMixin, g_views.DetailView):
+    model = models.Bed
+    slug_field = 'abbrev'
+    slug_url_kwarg = 'bed_abbrev'
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        return qs.filter(env=self.env)
 
 
 class EditBedView(BedMixin, e_views.UpdateView):
-    template_name = 'terrafirma/edit_bed.html'
     model = models.Bed
     fields = ['name', 'abbrev']
     slug_field = 'abbrev'

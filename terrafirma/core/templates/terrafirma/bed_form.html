@@ -1,0 +1,15 @@
+{% extends object|yesno:'terrafirma/bed_detail.html,terrafirma/environment_detail.html' %}
+{% load extension_tags %}
+
+{% block title %} {{ block.super }} - {% form_kind 'Bed' %} {% endblock %}
+{% block header %} {{ block.super }}<span> - {% form_kind 'Bed' %}</span> {% endblock %}
+
+{% block content %}
+
+<form method="post">
+    {% csrf_token %}
+    {{ form.as_ul }}
+    <input type="submit" value="Submit"/>
+</form>
+
+{% endblock %}

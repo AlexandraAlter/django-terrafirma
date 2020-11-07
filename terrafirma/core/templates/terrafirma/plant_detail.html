@@ -7,7 +7,6 @@
 
 {% block content %}
 
-{% url 'edit-plant' plant.id as edit_plant_url %}
 {% url 'plant-type' plant.type.id as plant_type_url %}
 {% url 'new-trans' plant.id as new_trans_url %}
 {% url 'new-obs' plant.id as new_obs_url %}
@@ -15,7 +14,7 @@
 {% url 'new-mal' plant.id as new_mal_url %}
 {% url 'bed' plant.cur_bed.env.abbrev plant.cur_bed.abbrev as bed_url %}
 
-<h2>Plant Details (<a href={{ edit_plant_url }}>Edit</a>)</h2>
+<h2>Plant Details (<a href={{ plant.get_edit_url }}>Edit</a>)</h2>
 
 <b>Type:</b>&nbsp;<a href={{ plant_type_url }}>{{ plant.type }}</a>
 <br>

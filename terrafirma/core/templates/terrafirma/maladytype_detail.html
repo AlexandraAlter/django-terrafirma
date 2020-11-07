@@ -1,4 +1,4 @@
-{% extends "terrafirma/treatmenttype_list.html" %}
+{% extends "terrafirma/maladytype_list.html" %}
 {% load extension_tags %}
 
 {% block title %} {{ block.super }} - {{ object.name }} {% endblock %}
@@ -6,9 +6,13 @@
 
 {% block content %}
 
-<h2>Treatment Type Details</h2>
+{% url 'edit-mal-type' object.id as edit_url %}
+
+<h2>Malady Type Details (<a href={{ edit_url }}>Edit</a>)</h2>
 
 <b>Name:</b> {{ object.name }}
+<br>
+<b>Type:</b> {{ object.type }}
 
 {% endblock %}
 

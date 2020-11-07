@@ -1,8 +1,9 @@
-{% extends "terrafirma/plant_detail.html" %}
+{% extends 'terrafirma/plant_detail.html' %}
 {% load extension_tags %}
 {% load new_string_format %}
 
-{% block title %} {{ block.super }} - New Observation {% endblock %}
-{% block header %} {{ block.super }}<span> - New Observation</span> {% endblock %}
+{% block title %} {{ block.super }} - {% form_kind 'Observation' %} {% endblock %}
+{% block header %} {{ block.super }}<span> - {% form_kind 'Observation' %}</span> {% endblock %}
 
 {% block content %} {% include 'terrafirma/_observation_form.html' %} {% endblock %}
+

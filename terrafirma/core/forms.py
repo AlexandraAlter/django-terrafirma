@@ -1,7 +1,8 @@
 from django import forms
 from django.utils.safestring import mark_safe
+from django.utils import timezone
 
-from . import models
+from . import models, widgets
 
 
 class PlantForm(forms.ModelForm):
@@ -11,7 +12,8 @@ class PlantForm(forms.ModelForm):
         model = models.Plant
         fields = ['type', 'amount', 'unit']
         widgets = {
-            'unit': forms.RadioSelect(attrs={'class': 'unit_widget'}, choices=models.PLANTING_UNITS)
+            'unit': forms.RadioSelect(attrs={'class': 'unit_widget'},
+                                      choices=models.PLANTING_UNITS),
         }
 
     class Media:
@@ -36,3 +38,16 @@ class MalForm(ObsForm):
     class Meta(ObsForm.Meta):
         model = models.Malady
         fields = ['type', 'when']
+
+
+def _mal_type_types():
+    return models.MaladyType.objects.order_by('type').distinct('type').values_list('type', flat=True).all()
+
+
+class MalTypeForm(forms.ModelForm):
+    type = forms.CharField(widget=widgets.ListTextWidget(name='mal_types', data_list=_mal_type_types))
+
+    class Meta(ObsForm.Meta):
+        model = models.MaladyType
+        fields = ['name', 'type']
+
