@@ -31,13 +31,13 @@
 {% if forloop.last %}</ul>{% endif %}
 {% endfor %}
 
-<h2><a href={% url 'plants' %}>Plants</a> ({{ num_plants_alive }} alive, {{ num_plants_dead }} dead)</h2>
+<h3><a href={% url 'plants' %}>Plants</a> ({{ num_plants_alive }} alive, {{ num_plants_dead }} dead)</h2>
 
-<h2><a href={% url 'plant-types' %}>Plants Types</a> ({{ num_plant_types }})</h2>
+<h3><a href={% url 'plant-types' %}>Plants Types</a> ({{ num_plant_types }})</h2>
 
-<h2><a href={% url 'trt-types' %}>Treatment Types</a> ({{ num_trt_types }})</h2>
+<h3><a href={% url 'trt-types' %}>Treatment Types</a> ({{ num_trt_types }})</h2>
 
-<h2><a href={% url 'mal-types' %}>Malady Types</a> ({{ num_mal_types }})</h2>
+<h3><a href={% url 'mal-types' %}>Malady Types</a> ({{ num_mal_types }})</h2>
 
 {% if_map_installed %}
 <h2><a href={% url 'map' %}>Map</a></h2>
